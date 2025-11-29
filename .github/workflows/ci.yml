@@ -2,14 +2,8 @@ name: ci
 
 on:
   push:
-    branches:
-      - main
+  pull_request_target:
   pull_request:
-
-env:
-  SERVER: ${{ secrets.SERVER }}
-  LOGIN: ${{ secrets.LOGIN }}
-  KEY: ${{ secrets.KEY }}
 
 jobs:
   ci:
@@ -18,7 +12,9 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v2
@@ -30,5 +26,9 @@ jobs:
           pip install -r test-requirements.txt
           pip install -r requirements.txt
       - name: Run Tests
+        env:
+          SERVER: ${{ secrets.SERVER }}
+          LOGIN: ${{ secrets.LOGIN }}
+          KEY: ${{ secrets.KEY }}
         run: |
           pytest -v -vrxs

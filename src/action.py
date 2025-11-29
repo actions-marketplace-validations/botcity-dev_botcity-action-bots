@@ -165,6 +165,7 @@ class Action:
             "version": self.args.version,
             "technology": self.args.technology.upper(),
             "command": None,
+            "repositoryLabel": self.args.repositoryLabel,
         }
         with requests.post(url, json=data, headers=self.headers, timeout=5) as req:
             if req.status_code != 200:
@@ -196,12 +197,14 @@ class Action:
                             action="store")
         parser.add_argument("-r", "--release", help="Will the release", dest='release',
                             type=lambda x: bool(strtobool(x)), action="store")
-        parser.add_argument("-v", "--version", help="New version to bot", type=str, action="store")
+        parser.add_argument("-v", "--version", help="New version to bot", type=str, action="store", required=True)
         parser.add_argument("-p", "--path", help="Path to github action repository", type=str, action="store")
         parser.add_argument("-bp", "--botPath", help="Path to compress bot", type=str, action="store")
         parser.add_argument("-bi", "--botId", help="Bot ID that will be modified.", type=str, action="store")
         parser.add_argument("-t", "--technology", help="technology bot.", type=str, action="store")
         parser.add_argument("-ap", "--actionPath", help="actionPath", type=str, action="store")
+        parser.add_argument("-re", "--repositoryLabel", help="This is the repository used at BotCity Orchestrator",
+                            type=str, action="store", required=False, default="DEFAULT")
 
         args = parser.parse_args()
         return args
@@ -259,6 +262,9 @@ class Action:
 
         self.filepath = self._get_file_path()
         bot = self._exist_bot()
+
+        if not self.args.version and (self.args.deploy or self.args.release):
+            raise ValueError("Version is required.")
 
         if self.args.deploy or bot is None:
             self.deploy()
